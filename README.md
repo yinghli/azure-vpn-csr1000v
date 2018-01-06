@@ -234,8 +234,8 @@ Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State
 BGP route optimaztion
 -------------------------
 ## Inbound Route
-On premise have two IPSec tunnel, for East Asia route, on premise will have same route from BJ and SH. <br>
-We can setup ```bgp bestpath as-path multipath-relax``` to support equal cost multi path(ECMP) to do load sharing. <br>
+On premise have two IPSec tunnel, for East Asia route 10.6.0.0/16, on premise will have same route from China North and China East. <br>
+We can setup ```bgp bestpath as-path multipath-relax``` and ```maximum-paths 16``` to support equal cost multi path(ECMP) to do load sharing between those two IPSec tunnel. <br>
 Current BGP route table for 10.6.0.0/16, both route is marked as "multipath" and best route. 
 ```
 CSR1000vOnPrem#show ip bgp 10.6.0.0/16
@@ -254,8 +254,8 @@ Multipath: eBGP
       Origin IGP, localpref 100, valid, external, multipath, best
       rx pathid: 0, tx pathid: 0x0
 ```
-If we wants to select one of them as primary path and the other as secondary path, we can setup weight or local preference to influence the inbound route selection. This will influence outbound traffic. <br>
-If we wants to use Weight, setup ```neighbor 10.2.1.254 weight 500``` to select BJ (65001) as the primary path for network 10.6.0.0/16.<br>
+If we wants to select one of them as primary path and the other as secondary path, we can setup weight or local preference attribute to influence the inbound route selection. BGP inbound route will influence outbound traffic. <br>
+If we wants to use Weight, setup ```neighbor 10.2.1.254 weight 500``` to select China North (65001) as the primary path for network 10.6.0.0/16.<br>
 From the output, we can see that local route already choose weight 500 route as best. 
 ```
 CSR1000vOnPrem#show ip bgp 10.6.0.0/16
@@ -274,7 +274,7 @@ Multipath: eBGP
       Origin IGP, localpref 100, weight 500, valid, external, best
       rx pathid: 0, tx pathid: 0x0
 ```
-If we try to use local preference, we can use route-map to setup 10.6.0.0/16 local preference attribute and make it as best. 
+If we try to use local preference attribute, we can use route-map to setup 10.6.0.0/16 higher local preference attribute and make it as best. 
 ```
 ip prefix-list lp seq 5 permit 10.6.0.0/16
 !
