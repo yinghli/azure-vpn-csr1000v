@@ -235,6 +235,104 @@ BGP route optimaztion
 -------------------------
 ## Inbound Route
 On premise have two IPSec tunnel, for East Asia route, on premise will have same route from BJ and SH. <br>
-We setup ```bgp bestpath as-path multipath-relax``` to support equal cost multi path(ECMP) to do load sharing. <br>
-If we wants to select one of them as primary path and the other as secondary path, we can setup weight or local preference to influce the inbound route selection. <br>
+We can setup ```bgp bestpath as-path multipath-relax``` to support equal cost multi path(ECMP) to do load sharing. <br>
+Current BGP route table for 10.6.0.0/16, both route is marked as "multipath" and best route. 
+```
+CSR1000vOnPrem#show ip bgp 10.6.0.0/16
+BGP routing table entry for 10.6.0.0/16, version 19
+Paths: (2 available, best #2, table default)
+Multipath: eBGP
+  Not advertised to any peer
+  Refresh Epoch 1
+  65002 65003
+    10.2.3.254 from 10.2.3.254 (10.2.3.254)
+      Origin IGP, localpref 100, valid, external, multipath(oldest)
+      rx pathid: 0, tx pathid: 0
+  Refresh Epoch 1
+  65001 65003
+    10.2.1.254 from 10.2.1.254 (10.2.1.254)
+      Origin IGP, localpref 100, valid, external, multipath, best
+      rx pathid: 0, tx pathid: 0x0
+```
+If we wants to select one of them as primary path and the other as secondary path, we can setup weight or local preference to influence the inbound route selection. This will influence outbound traffic. <br>
+If we wants to use Weight, setup ```neighbor 10.2.1.254 weight 500``` to select BJ (65001) as the primary path for network 10.6.0.0/16.<br>
+From the output, we can see that local route already choose weight 500 route as best. 
+```
+CSR1000vOnPrem#show ip bgp 10.6.0.0/16
+BGP routing table entry for 10.6.0.0/16, version 32
+Paths: (2 available, best #2, table default)
+Multipath: eBGP
+  Not advertised to any peer
+  Refresh Epoch 1
+  65002 65003
+    10.2.3.254 from 10.2.3.254 (10.2.3.254)
+      Origin IGP, localpref 100, valid, external
+      rx pathid: 0, tx pathid: 0
+  Refresh Epoch 1
+  65001 65003
+    10.2.1.254 from 10.2.1.254 (10.2.1.254)
+      Origin IGP, localpref 100, weight 500, valid, external, best
+      rx pathid: 0, tx pathid: 0x0
+```
+If we try to use local preference, we can use route-map to setup 10.6.0.0/16 local preference attribute and make it as best. 
+```
+ip prefix-list lp seq 5 permit 10.6.0.0/16
+!
+route-map bgplp permit 10
+ match ip address prefix-list lp
+ set local-preference 200
+!
+route-map bgplp permit 20
+!
+```
+From the output, we can see that local route already choose local preference 200 route as best. 
+```
+CSR1000vOnPrem#show ip bgp 10.6.0.0/16
+BGP routing table entry for 10.6.0.0/16, version 41
+Paths: (2 available, best #2, table default)
+Multipath: eBGP
+  Not advertised to any peer
+  Refresh Epoch 1
+  65002 65003
+    10.2.3.254 from 10.2.3.254 (10.2.3.254)
+      Origin IGP, localpref 100, valid, external
+      rx pathid: 0, tx pathid: 0
+  Refresh Epoch 1
+  65001 65003
+    10.2.1.254 from 10.2.1.254 (10.2.1.254)
+      Origin IGP, localpref 200, valid, external, best
+      rx pathid: 0, tx pathid: 0x0
+```
 ## Outbound Route
+For outbound route, typically we will use AS-PATH to influence inbound traffic. Shortest AS-PATH will be best route. <br>
+By default, East Asia VPN gateway will have two path to access on premise 172.16.1.0/24. <br>
+We can prepend AS-PATH to influence Azure side choosing which path to send traffic. 
+```
+ip prefix-list bgp seq 5 permit 172.16.1.0/24
+!
+!
+route-map bgppreas permit 10
+ match ip address prefix-list bgp
+ set as-path prepend 65000
+!
+```
+In BGP neighbor, we will ask East Asia to use China North as primary route, so we prepend AS-PATH to China East BGP neighbor. ```
+neighbor 10.2.3.254 route-map bgppreas out```. <br>
+If we look at the Azure VPN gateway using powershell ```Get-AzureRmVirtualNetworkGatewayLearnedRoute -VirtualNetworkGatewayName HKGW -ResourceGroupName HKG```, we will see route 172.16.1.0/24 from different BGP neighbor have different AS-PATH attribute. From China North have shortest AS-PATH, East Asia VPN gateway will choose this as best route. 
+```
+AsPath       : 65001-65000
+LocalAddress : 10.6.0.254
+Network      : 172.16.1.0/24
+NextHop      : 10.2.1.254
+Origin       : EBgp
+SourcePeer   : 10.2.1.254
+Weight       : 32768
+
+AsPath       : 65002-65000-65000
+LocalAddress : 10.6.0.254
+Network      : 172.16.1.0/24
+NextHop      : 10.2.3.254
+Origin       : EBgp
+SourcePeer   : 10.2.3.254
+Weight       : 32768
+```
