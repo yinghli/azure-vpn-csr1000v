@@ -31,6 +31,7 @@ On Premise Cisco CSR1000v VPN Setup
 -----------------
 
 ## Setup IKEv2
+Setup 2 IKEv2 profile, one is to Azure China North(BJ), the other is to Azure China East(SH). <br>
 ```
 crypto ikev2 proposal azure-proposal
  encryption aes-cbc-256 aes-cbc-128 3des
@@ -65,6 +66,7 @@ crypto ikev2 profile SH
  keyring local SH
 ```
 ## Setup IPSec
+Setup 2 IPSec profile, one is to Azure China North(BJ), the other is to Azure China East(SH). <br>
 ```
 crypto ipsec transform-set azure-ipsec-proposal-set esp-aes 256 esp-sha-hmac
  mode tunnel
@@ -79,6 +81,7 @@ crypto ipsec profile SH
 
 ```
 ## Setup Tunnel Interface
+Setup 2 tunnel interface, use 2 seperate IP address, one is to Azure China North(BJ), the other is to Azure China East(SH). <br>
 ```
 interface Loopback0
  ip address 10.255.1.1 255.255.255.255
@@ -105,6 +108,12 @@ interface Tunnel2
  tunnel protection ipsec profile SH
 !
 ```
+## Setup static route
+Setup 2 static route to remote BGP peer IP address.<br>
+```
+ip route 10.2.1.254 255.255.255.255 Tunnel1
+ip route 10.2.3.254 255.255.255.255 Tunnel2
+```
 ## Setup BGP
 ```
 router bgp 65000
@@ -126,5 +135,6 @@ router bgp 65000
   maximum-paths 16
  exit-address-family
 !
-
 ```
+Verify IPSec VPN and BGP information
+-----------------
