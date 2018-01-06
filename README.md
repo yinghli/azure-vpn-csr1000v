@@ -115,6 +115,15 @@ ip route 10.2.1.254 255.255.255.255 Tunnel1
 ip route 10.2.3.254 255.255.255.255 Tunnel2
 ```
 ## Setup BGP
+Setup route-map to advertise local route only.
+```
+ip prefix-list bgp seq 5 permit 172.16.1.0/24
+!
+route-map bgp permit 10
+ match ip address prefix-list bgp
+!
+```
+Setup normal BGP neighbors information
 ```
 router bgp 65000
  bgp log-neighbor-changes
@@ -224,4 +233,8 @@ Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State
 ```
 BGP route optimaztion
 -------------------------
-
+## Inbound Route
+On premise have two IPSec tunnel, for East Asia route, on premise will have same route from BJ and SH. <br>
+We setup ```bgp bestpath as-path multipath-relax``` to support equal cost multi path(ECMP) to do load sharing. <br>
+If we wants to select one of them as primary path and the other as secondary path, we can setup weight or local preference to influce the inbound route selection. <br>
+## Outbound Route
