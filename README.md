@@ -138,3 +138,90 @@ router bgp 65000
 ```
 Verify IPSec VPN and BGP information
 -----------------
+## IKEv2 Status
+IKEv2 have 2 SA,  one is to Azure China North(BJ), the other is to Azure China East(SH). <br>
+```
+CSR1000vOnPrem#show crypto ikev2 sa
+ IPv4 Crypto IKEv2  SA
+
+Tunnel-id Local                 Remote                fvrf/ivrf            Status
+2         192.168.1.17/4500     139.219.190.98/4500   none/none            READY
+      Encr: AES-CBC, keysize: 256, PRF: SHA1, Hash: SHA96, DH Grp:2, Auth sign: PSK, Auth verify: PSK
+      Life/Active Time: 86400/13936 sec
+
+Tunnel-id Local                 Remote                fvrf/ivrf            Status
+3         192.168.1.17/4500     40.125.213.180/4500   none/none            READY
+      Encr: AES-CBC, keysize: 256, PRF: SHA1, Hash: SHA96, DH Grp:2, Auth sign: PSK, Auth verify: PSK
+      Life/Active Time: 86400/13911 sec
+
+ IPv6 Crypto IKEv2  SA
+
+```
+## IPSec Status
+IPSec have 2 SA,  one is to Azure China North(BJ), the other is to Azure China East(SH). <br>
+```
+CSR1000vOnPrem#show crypto ipsec sa
+
+interface: Tunnel1
+    Crypto map tag: Tunnel1-head-0, local addr 192.168.1.17
+
+   protected vrf: (none)
+   local  ident (addr/mask/prot/port): (0.0.0.0/0.0.0.0/0/0)
+   remote ident (addr/mask/prot/port): (0.0.0.0/0.0.0.0/0/0)
+   current_peer 40.125.213.180 port 4500
+     PERMIT, flags={origin_is_acl,}
+    #pkts encaps: 696, #pkts encrypt: 696, #pkts digest: 696
+    #pkts decaps: 1079, #pkts decrypt: 1079, #pkts verify: 1079
+    #pkts compressed: 0, #pkts decompressed: 0
+    #pkts not compressed: 0, #pkts compr. failed: 0
+    #pkts not decompressed: 0, #pkts decompress failed: 0
+    #send errors 0, #recv errors 0
+
+     local crypto endpt.: 192.168.1.17, remote crypto endpt.: 40.125.213.180
+     plaintext mtu 1422, path mtu 1500, ip mtu 1500, ip mtu idb GigabitEthernet4
+     current outbound spi: 0xF58A1506(4119467270)
+     PFS (Y/N): N, DH group: none
+
+interface: Tunnel2
+    Crypto map tag: Tunnel2-head-0, local addr 192.168.1.17
+
+   protected vrf: (none)
+   local  ident (addr/mask/prot/port): (0.0.0.0/0.0.0.0/0/0)
+   remote ident (addr/mask/prot/port): (0.0.0.0/0.0.0.0/0/0)
+   current_peer 139.219.190.98 port 4500
+     PERMIT, flags={origin_is_acl,}
+    #pkts encaps: 694, #pkts encrypt: 694, #pkts digest: 694
+    #pkts decaps: 1059, #pkts decrypt: 1059, #pkts verify: 1059
+    #pkts compressed: 0, #pkts decompressed: 0
+    #pkts not compressed: 0, #pkts compr. failed: 0
+    #pkts not decompressed: 0, #pkts decompress failed: 0
+    #send errors 0, #recv errors 0
+
+     local crypto endpt.: 192.168.1.17, remote crypto endpt.: 139.219.190.98
+     plaintext mtu 1422, path mtu 1500, ip mtu 1500, ip mtu idb GigabitEthernet4
+     current outbound spi: 0xCE16B110(3457593616)
+     PFS (Y/N): N, DH group: none
+```
+## BGP Status
+BGP have 2 neighbors, one is to Azure China North(BJ), the other is to Azure China East(SH). <br>
+```
+CSR1000vOnPrem#show ip bgp summary
+BGP router identifier 10.255.1.2, local AS number 65000
+BGP table version is 23, main routing table version 23
+11 network entries using 2728 bytes of memory
+19 path entries using 2432 bytes of memory
+2 multipath network entries and 4 multipath paths
+7/4 BGP path/bestpath attribute entries using 1848 bytes of memory
+6 BGP AS-PATH entries using 208 bytes of memory
+0 BGP route-map cache entries using 0 bytes of memory
+0 BGP filter-list cache entries using 0 bytes of memory
+BGP using 7216 total bytes of memory
+BGP activity 68/57 prefixes, 376/357 paths, scan interval 60 secs
+
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+10.2.1.254      4        65001     140     134       23    0    0 01:54:24        9
+10.2.3.254      4        65002     143     139       23    0    0 01:54:24        9
+```
+BGP route optimaztion
+-------------------------
+
