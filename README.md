@@ -25,7 +25,7 @@ Azure BGP peer IP     |10.255.1.2      |              |              |
 Local Network         |172.16.1.0/24   |10.2.0.0/23   |10.2.3.0/24   |10.6.0.0/16
 Local Network         |                |10.2.10.0/23  |10.2.6.0/23   |
 
-For more information about how to setup IPsec VPN with Azure VPN gateway, plesse check ![here](https://github.com/yinghli/azure-vpn-asa/blob/master/README.md)
+For more information about how to setup IPsec VPN with Azure VPN gateway, plesse check [here](https://github.com/yinghli/azure-vpn-asa/blob/master/README.md)
 
 On Premise Cisco CSR1000v VPN Setup 
 -----------------
