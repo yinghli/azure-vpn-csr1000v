@@ -1,4 +1,4 @@
-Setup cross geo high available connection between on premise and Azure with IPSec VPN 
+Setup high available connection between on premise and Azure with IPSec VPN 
 ====================
 Customer have Azure workload at Azure China North and Azure Global East Asia. <br>
 They use IPSec VPN connect from on premise to Azure China North and extend IPSec VPN to East Asia. <br>
